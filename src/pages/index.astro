@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection, getEntry } from 'astro:content';
+
+const hero = await getEntry('page', 'hero');
+const audience = await getEntry('page', 'audience');
+const expert = await getEntry('page', 'expert');
+const cta = await getEntry('page', 'cta');
+const tariffsIntro = await getEntry('page', 'tariffs-intro');
+
+const steps = (await getCollection('steps')).sort((a, b) => a.data.order - b.data.order);
+const tariffs = (await getCollection('tariffs')).sort((a, b) => a.data.order - b.data.order);
+
+const { Content: AudienceBody } = await audience.render();
+const { Content: ExpertBody } = await expert.render();
+const stepsRendered = await Promise.all(
+  steps.map(async (s) => ({ data: s.data, Content: (await s.render()).Content }))
+);
+const h = hero.data;
+---
+
+<Base>
+  <!-- ОБЛОЖКА / HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-text">
+        <div class="eyebrow hero-eyebrow">{h.eyebrow}</div>
+        <h1 class="hero-title">
+          {h.titleMain}
+          <span class="h-accent">{h.titleAccent}</span>
+        </h1>
+        {h.badge && <div class="hero-badge"><span class="hero-badge-mark">✦</span>{h.badge}</div>}
+        <p class="lead">{h.subtitle}</p>
+        <div class="hero-cta">
+          <button class="btn btn-gold btn-lg js-open-assistant">{h.ctaPrimary}</button>
+          <a class="btn btn-ghost btn-lg" href="#steps">{h.ctaSecondary}</a>
+        </div>
+        <div class="hero-trust">
+          {h.trust?.map((t, i) => (
+            <Fragment>
+              {i > 0 && <span class="dot"></span>}
+              <span>{t}</span>
+            </Fragment>
+          ))}
+        </div>
+      </div>
+      <div class="hero-portrait">
+        <div class="portrait"><img src="/bayandina.png" alt="Марина Баяндина" /></div>
+        <div class="portrait-frame"></div>
+        <div class="portrait-badge"><b>Марина Баяндина</b><span>врач · антивозрастная медицина</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЦИФРЫ -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-inner" data-animate>
+        {h.stats?.map((s) => (
+          <div class="stat">
+            <div class="stat-value">{s.value}</div>
+            <div class="stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ДЛЯ КОГО -->
+  <section class="audience" id="audience">
+    <div class="container">
+      <div class="section-head" data-animate>
+        <div class="eyebrow center">Для кого</div>
+        <h2 class="h-section">{audience.data.title}</h2>
+        <p class="lead">{audience.data.subtitle}</p>
+      </div>
+      <div class="audience-list" data-animate><AudienceBody /></div>
+    </div>
+  </section>
+
+  <!-- 7 СТУПЕНЕЙ -->
+  <section class="steps" id="steps">
+    <div class="container">
+      <div class="section-head" data-animate>
+        <div class="eyebrow center">Программа</div>
+        <h2 class="h-section">7 ступеней <em>молодости</em></h2>
+        <p class="lead">Последовательный путь: каждая ступень — отдельный блок с теорией и практикой.</p>
+      </div>
+      <div class="steps-list">
+        {stepsRendered.map((s) => (
+          <div class="step-row">
+            <div class="step-num">{String(s.data.order).padStart(2, '0')}</div>
+            <div class="step-body">
+              <h3 class="step-title">
+                {s.data.title}
+                {s.data.system && <span class="step-system">{s.data.system}</span>}
+              </h3>
+              <div class="step-desc"><s.Content /></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ЭКСПЕРТ -->
+  <section class="expert" id="expert">
+    <div class="container expert-grid">
+      <div class="expert-photo" data-animate><img src={expert.data.photo} alt={expert.data.name} style={expert.data.photoPosition ? `object-position: ${expert.data.photoPosition}` : undefined} /></div>
+      <div data-animate>
+        <div class="eyebrow">Эксперт курса</div>
+        <h2 style="margin:18px 0 4px">{expert.data.name}</h2>
+        <div class="role">{expert.data.role}</div>
+        <div class="bio"><ExpertBody /></div>
+        <div class="creds">{expert.data.credentials?.map((c) => <span class="cred">{c}</span>)}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band">
+    <div class="container" data-animate>
+      <h2>{cta.data.title}</h2>
+      <p>{cta.data.subtitle}</p>
+      <button class="btn btn-gold btn-lg js-open-assistant">{cta.data.button}</button>
+      {cta.data.note && <div class="note">{cta.data.note}</div>}
+    </div>
+  </section>
+
+  <!-- ТАРИФЫ -->
+  <section class="tariffs" id="tariffs">
+    <div class="container">
+      <div class="section-head" data-animate>
+        <div class="eyebrow center">Участие</div>
+        <h2 class="h-section">{tariffsIntro.data.title}</h2>
+        <p class="lead">{tariffsIntro.data.subtitle}</p>
+      </div>
+      <div class="tariffs-grid">
+        {tariffs.map((t) => (
+          <div class={'tariff' + (t.data.badge ? ' featured' : '') + (t.data.limit ? ' scarce' : '')} data-animate>
+            {t.data.badge && <div class="tariff-badge">{t.data.badge}</div>}
+            <div class="tariff-name">{t.data.name}</div>
+            {t.data.limit && <div class="tariff-limit"><span class="dot-em"></span>{t.data.limit}</div>}
+            <div class="tariff-price">{t.data.price}</div>
+            <ul class="tariff-feats">{t.data.features.map((f) => <li>{f}</li>)}</ul>
+            <button class={'btn js-open-assistant ' + (t.data.badge ? 'btn-gold' : 'btn-ghost')}>{t.data.cta}</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,163 @@
+---
+import '../styles/global.css';
+
+interface Props { title?: string; description?: string; }
+const {
+  title = 'Алхимия молодости: 7 ступеней — авторский курс Марины Баяндиной',
+  description = 'Авторский курс Марины Баяндиной по антивозрастной нутрициологии. 7 ступеней — от биохимии клетки до сияния кожи. Системно, врачебно, премиум.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="header" id="header">
+    <div class="container header-inner">
+      <a class="logo" href="#top" aria-label="Алхимия молодости: 7 ступеней">
+        <span class="logo-mark">A</span>
+        <span class="logo-text">Алхимия молодости</span>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="#steps">Программа</a>
+        <a href="#audience">Для кого</a>
+        <a href="#expert">Эксперт</a>
+        <a href="#tariffs">Участие</a>
+      </nav>
+      <button class="btn btn-gold header-cta js-open-assistant">Забронировать место</button>
+      <button class="burger" id="burger" aria-label="Меню"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main id="top">
+    <slot />
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div>
+          <a class="logo" href="#top">
+            <span class="logo-num">7</span>
+            <span class="logo-text">ступеней</span>
+            <span class="logo-sub">молодости</span>
+          </a>
+          <p class="footer-tag">«Алхимия молодости: 7 ступеней» — авторский курс Марины Баяндиной по антивозрастной нутрициологии и системному подходу к здоровью.</p>
+        </div>
+        <nav class="footer-links">
+          <a href="https://instagram.com/dr.robertovna" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://t.me/dr_robertovna" target="_blank" rel="noopener">Telegram</a>
+          <a href="https://bayandina.ru" target="_blank" rel="noopener">bayandina.ru</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 «Алхимия молодости». Все права защищены.</span>
+        <span>Информация на сайте не является медицинской консультацией или диагнозом.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ИИ-ассистент (превью UI; логика подключится к Cloudflare-функции) -->
+  <button class="assistant-launcher" id="assistant-launcher">
+    <span class="spark">✦</span> Ассистент курса
+  </button>
+  <section class="assistant-panel" id="assistant-panel" aria-label="Ассистент курса">
+    <header class="assistant-head">
+      <div class="ava">A</div>
+      <div>
+        <div class="ttl">Ассистент курса</div>
+        <div class="sub">«Алхимия молодости: 7 ступеней»</div>
+      </div>
+      <button class="close" id="assistant-close" aria-label="Закрыть">×</button>
+    </header>
+    <div class="assistant-body" id="assistant-body">
+      <div class="msg bot">Здравствуйте! Я ассистент курса Марины Баяндиной. Помогу разобраться в программе, подобрать тариф и забронировать место. Что вас интересует?</div>
+    </div>
+    <div class="chips" id="assistant-chips">
+      <button class="chip" data-intent="program">Расскажите о программе</button>
+      <button class="chip" data-intent="book">Забронировать место</button>
+      <button class="chip" data-intent="pay">Прислать ссылку на оплату</button>
+    </div>
+    <div class="assistant-input">
+      <input type="text" id="assistant-text" placeholder="Напишите сообщение…" />
+      <button id="assistant-send" aria-label="Отправить">➤</button>
+    </div>
+    <div class="assistant-note">Превью-режим. Скоро ассистент будет отвечать вживую.</div>
+  </section>
+
+  <script>
+    // Шапка: фон при скролле
+    const header = document.getElementById('header');
+    const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Бургер-меню
+    const burger = document.getElementById('burger');
+    burger?.addEventListener('click', () => header.classList.toggle('menu-open'));
+    document.querySelectorAll('#nav a').forEach((a) =>
+      a.addEventListener('click', () => header.classList.remove('menu-open'))
+    );
+
+    // Появление при скролле
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }),
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('[data-animate], .step-row').forEach((el) => io.observe(el));
+
+    // ─── Ассистент (превью) ───
+    const panel = document.getElementById('assistant-panel');
+    const launcher = document.getElementById('assistant-launcher');
+    const body = document.getElementById('assistant-body');
+    const openA = () => { panel.classList.add('open'); launcher.style.display = 'none'; };
+    const closeA = () => { panel.classList.remove('open'); launcher.style.display = ''; };
+    launcher.addEventListener('click', openA);
+    document.getElementById('assistant-close')?.addEventListener('click', closeA);
+    document.querySelectorAll('.js-open-assistant').forEach((b) => b.addEventListener('click', openA));
+
+    const push = (text, who) => {
+      const m = document.createElement('div');
+      m.className = 'msg ' + who;
+      m.textContent = text;
+      body.appendChild(m);
+      body.scrollTop = body.scrollHeight;
+    };
+    const replies = {
+      program: 'Курс — это 7 ступеней: от понимания процессов старения и обмена веществ до гормонов и красоты кожи. Каждая ступень — отдельный блок с практикой. Хотите, расскажу про конкретную ступень или подберём тариф?',
+      book: 'С удовольствием забронирую место! Подскажите, пожалуйста, ваше имя и удобный способ связи (Telegram или телефон) — и я закреплю за вами место на курсе.',
+      pay: 'Как только подтвердим бронь и тариф, я сразу пришлю вам персональную ссылку на оплату (с возможностью рассрочки). С какого тарифа начнём?',
+    };
+    const answer = (intent) => push(replies[intent] || 'Спасибо! Я передам ваш вопрос — а пока вы можете оставить заявку, и мы свяжемся с вами.', 'bot');
+
+    document.querySelectorAll('#assistant-chips .chip').forEach((c) =>
+      c.addEventListener('click', () => {
+        push(c.textContent, 'user');
+        setTimeout(() => answer(c.dataset.intent), 350);
+      })
+    );
+    const input = document.getElementById('assistant-text');
+    const send = () => {
+      const v = input.value.trim();
+      if (!v) return;
+      push(v, 'user');
+      input.value = '';
+      setTimeout(() => push('Спасибо за вопрос! В превью-режиме я отвечаю ограниченно — скоро буду на связи вживую. А пока могу забронировать за вами место.', 'bot'), 350);
+    };
+    document.getElementById('assistant-send')?.addEventListener('click', send);
+    input?.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+  </script>
+</body>
+</html>
