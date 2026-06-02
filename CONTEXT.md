@@ -69,8 +69,12 @@
 - **Контент-архитектура:** `content/*.md` — единый источник правды. 7 ступеней = 7 `.md` (контент-коллекция), тарифы = `.md`, синглтоны (hero/audience/expert/cta) = `.md` с frontmatter. `CONTEXT.md` — внутренний бриф, НЕ контент сайта.
 - **Ассистент читает те же `content/*.md`** → всегда объясняет актуальный продукт (единый источник для сайта и ИИ).
 
-## Деплой
-**Cloudflare Pages** (сайт-статика) + **Cloudflare-функция** для ассистента — всё на одной платформе, работает из РФ. Repo `razovik-hub/molodost` (имя на подтверждение).
+## Деплой — ЗАПУЩЕНО
+- **GitHub repo:** https://github.com/razovik-hub/molodost (public)
+- **Production URL (GitHub Pages):** **https://razovik-hub.github.io/molodost/** ✓ работает из РФ
+- **Workflow:** `.github/workflows/deploy.yml` — на каждый push в `main` собирает Astro и деплоит. Сборка ~30 секунд + ~30 секунд на CDN-propagation.
+- **base-aware:** `astro.config.mjs` через env `DEPLOY=ghpages` переключает `base` на `/molodost`. Локально `npm run dev` работает с `base=/`. Helper `asset()` в Base.astro и index.astro нормализует пути к ассетам под оба таргета.
+- **Cloudflare Pages (будущее):** подключение через UI dash.cloudflare.com → Workers & Pages → Create → Connect to Git → razovik-hub/molodost → Astro preset → Deploy. На том же репо, без конфликта. Делать когда понадобится домен/ассистент-функция.
 
 ## Публикации (как в плейбуке)
 - `stories.html` — карточки сторис 1080×1920
