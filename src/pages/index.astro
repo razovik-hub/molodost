@@ -2,6 +2,11 @@
 import Base from '../layouts/Base.astro';
 import { getCollection, getEntry } from 'astro:content';
 
+const asset = (p: string) => {
+  const b = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return `${b}/${p.replace(/^\//, '')}`;
+};
+
 const hero = await getEntry('page', 'hero');
 const audience = await getEntry('page', 'audience');
 const expert = await getEntry('page', 'expert');
@@ -45,7 +50,7 @@ const h = hero.data;
         </div>
       </div>
       <div class="hero-portrait">
-        <div class="portrait"><img src="/bayandina.png" alt="Марина Баяндина" /></div>
+        <div class="portrait"><img src={asset('/bayandina.png')} alt="Марина Баяндина" /></div>
         <div class="portrait-frame"></div>
         <div class="portrait-badge"><b>Марина Баяндина</b><span>врач · антивозрастная медицина</span></div>
       </div>
@@ -106,7 +111,7 @@ const h = hero.data;
   <!-- ЭКСПЕРТ -->
   <section class="expert" id="expert">
     <div class="container expert-grid">
-      <div class="expert-photo" data-animate><img src={expert.data.photo} alt={expert.data.name} style={expert.data.photoPosition ? `object-position: ${expert.data.photoPosition}` : undefined} /></div>
+      <div class="expert-photo" data-animate><img src={asset(expert.data.photo || '')} alt={expert.data.name} style={expert.data.photoPosition ? `object-position: ${expert.data.photoPosition}` : undefined} /></div>
       <div data-animate>
         <div class="eyebrow">Эксперт курса</div>
         <h2 style="margin:18px 0 4px">{expert.data.name}</h2>
