@@ -27,6 +27,9 @@ jobs:
       - run: npm run build
         env:
           DEPLOY: ghpages
+          # URL Yandex Cloud Function — публичный, не секрет.
+          # Astro прокидывает PUBLIC_* в браузер → виджет шлёт сюда chat/tts/stt.
+          PUBLIC_ASSISTANT_API: https://functions.yandexcloud.net/d4endk92a8i9r8rd7mv6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
