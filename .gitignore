@@ -30,3 +30,6 @@ pnpm-debug.log*
 
 # claude (private to dev machine)
 .claude/settings.local.json
+
+# Obsidian — локальные настройки vault, не нужно в репо
+.obsidian/
