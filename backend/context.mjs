@@ -22,6 +22,14 @@ async function walk(dir) {
 
 /** Возвращает строку с полным контекстом курса для system-prompt. */
 export async function buildCourseContext() {
+  // В production-функции md-файлы не входят в пакет — рядом кладётся снимок
+  // (course-context.txt), собранный при сборке. Локально такого файла нет →
+  // читаем живой src/content (единый источник правды для сайта и ассистента).
+  try {
+    const snap = await readFile(join(__dirname, 'course-context.txt'), 'utf8');
+    if (snap.trim()) return snap;
+  } catch {}
+
   const files = await walk(CONTENT_ROOT);
   const sections = [];
   for (const f of files.sort()) {

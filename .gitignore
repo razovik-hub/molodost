@@ -1,6 +1,8 @@
 # build output
 dist/
 .astro/
+backend/.fn-build/
+backend/assistant-function.zip
 
 # dependencies
 node_modules/

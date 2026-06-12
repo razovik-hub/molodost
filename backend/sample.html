@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Сэмплер голоса — Алхимия молодости</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ivory:#FAF6EF; --ink:#241F2B; --ink-soft:#5C5560; --gold:#C2A14D; --gold-2:#9A7C2E; --emerald:#14564A; --line:rgba(36,31,43,.12); --line-gold:rgba(194,161,77,.5); }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Manrope',sans-serif;background:var(--ivory);color:var(--ink);padding:40px 20px;line-height:1.55}
+    .wrap{max-width:760px;margin:0 auto}
+    h1{font-family:'Cormorant',serif;font-weight:700;font-size:36px;line-height:1.1;margin-bottom:6px}
+    .lead{color:var(--ink-soft);font-size:15px;margin-bottom:22px}
+    .phrase{background:#fff;border:1px solid var(--line-gold);border-radius:14px;padding:18px 20px;font-size:15px;color:var(--ink);margin-bottom:18px}
+    .phrase b{font-family:'Cormorant',serif;font-weight:600;color:var(--emerald);display:block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+    .row{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s,box-shadow .2s}
+    .row.active{border-color:var(--gold);box-shadow:0 8px 24px -16px rgba(154,124,46,.6)}
+    .play{flex-shrink:0;width:42px;height:42px;border-radius:50%;border:1px solid var(--line-gold);background:var(--ivory);color:var(--gold-2);cursor:pointer;display:grid;place-items:center;font-size:14px;transition:all .2s}
+    .play:hover{background:#fff;border-color:var(--gold)}
+    .play.loading{opacity:.6;cursor:default}
+    .play.playing{background:var(--emerald);border-color:var(--emerald);color:#fff}
+    .meta{flex:1;min-width:0}
+    .ttl{font-weight:700;font-size:15px;margin-bottom:2px}
+    .sub{font-size:13px;color:var(--ink-soft)}
+    .pick{flex-shrink:0;font-family:'Manrope';font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--gold-2);background:none;border:1px solid var(--line-gold);border-radius:999px;padding:7px 12px;cursor:pointer;transition:all .2s}
+    .pick:hover{background:var(--gold);border-color:var(--gold);color:#fff}
+    .pick.chosen{background:var(--emerald);border-color:var(--emerald);color:#fff}
+    .note{margin-top:18px;padding:14px 16px;border-left:3px solid var(--gold);background:rgba(194,161,77,.08);border-radius:6px;font-size:14px;color:var(--ink-soft)}
+    .note b{color:var(--ink)}
+    .err{color:#B8442C;font-size:13px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Сэмплер голоса · SpeechKit v3</h1>
+    <p class="lead">Премиум-голоса с расширенными ролями. Послушайте 6 вариантов на одной фразе — кнопка «Выбрать» под тем, что зайдёт, скопирует команду в буфер.</p>
+
+    <div class="phrase">
+      <b>Тестовая фраза</b>
+      Это авторский курс Марины Баяндиной — врача с тридцатидвухлетним стажем. Семь ступеней: код старения, обмен веществ, гормоны, сердце и сосуды, опора тела, ясный ум, сияние кожи. Расскажу подробнее или подберём тариф?
+    </div>
+
+    <div id="rows"></div>
+    <div id="err" class="err"></div>
+
+    <div class="note">
+      <b>Подсказка:</b> marina — премиум-голос v3 (3 роли: neutral, friendly, whisper). jane и alena обновлены в v3 — выразительнее, чем в v1. dasha — самый мягкий женский. Темп 1.0 — обычный, 1.10–1.15 — премиум-разговорный.
+    </div>
+  </div>
+
+  <script>
+    const TEXT = 'Это авторский курс Марины Баяндиной — врача с тридцатидвухлетним стажем. Семь ступеней: код старения, обмен веществ, гормоны, сердце и сосуды, опора тела, ясный ум, сияние кожи. Расскажу подробнее или подберём тариф?';
+
+    const PRESETS = [
+      { id:'A', label:'A · marina · neutral · 1.05',  sub:'Премиум-сдержанный. Эталон для luxury.',                  voice:'marina', role:'neutral',  speed:1.05 },
+      { id:'B', label:'B · marina · friendly · 1.10', sub:'Текущий новый дефолт — тёплый премиум.',                  voice:'marina', role:'friendly', speed:1.10 },
+      { id:'C', label:'C · marina · whisper · 1.00',  sub:'Интимный полушёпот — luxury-консультант.',                voice:'marina', role:'whisper',  speed:1.00 },
+      { id:'D', label:'D · jane · good · 1.10',       sub:'Выразительная, эмоциональная.',                           voice:'jane',   role:'good',     speed:1.10 },
+      { id:'E', label:'E · dasha · friendly · 1.10',  sub:'Мягкая, юная — для лёгкого разговора.',                   voice:'dasha',  role:'friendly', speed:1.10 },
+      { id:'F', label:'F · alena · good · 1.10',      sub:'Обновлённая алёна v3 — классика с теплом.',               voice:'alena',  role:'good',     speed:1.10 },
+    ];
+
+    const rows = document.getElementById('rows');
+    const errEl = document.getElementById('err');
+    const cache = new Map();
+    let cur = null;
+
+    for (const p of PRESETS) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.dataset.id = p.id;
+      row.innerHTML = `
+        <button class="play" data-act="play" aria-label="Воспроизвести">▶</button>
+        <div class="meta"><div class="ttl">${p.label}</div><div class="sub">${p.sub}</div></div>
+        <button class="pick" data-act="pick">Выбрать</button>
+      `;
+      row.querySelector('[data-act="play"]').addEventListener('click', () => play(p, row));
+      row.querySelector('[data-act="pick"]').addEventListener('click', () => pick(p, row));
+      rows.appendChild(row);
+    }
+
+    function stop() {
+      if (cur) { try { cur.audio.pause(); } catch{} cur.btn.textContent='▶'; cur.btn.classList.remove('playing'); cur.row.classList.remove('active'); }
+      cur = null;
+    }
+
+    async function play(p, row) {
+      errEl.textContent = '';
+      const btn = row.querySelector('.play');
+      if (cur && cur.row === row && cur.audio && !cur.audio.paused) { stop(); return; }
+      stop();
+      try {
+        let url = cache.get(p.id);
+        if (!url) {
+          btn.classList.add('loading'); btn.textContent='…';
+          const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'tts', text: TEXT, voice:p.voice, role:p.role, speed:p.speed }) });
+          const data = await res.json();
+          btn.classList.remove('loading'); btn.textContent='▶';
+          if (!res.ok || !data.audio) { errEl.textContent = data.error ? `Ошибка: ${data.error}` : 'Не получилось синтезировать.'; return; }
+          const bin = atob(data.audio); const bytes = new Uint8Array(bin.length);
+          for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+          url = URL.createObjectURL(new Blob([bytes], { type: data.mime || 'audio/wav' }));
+          cache.set(p.id, url);
+        }
+        const audio = new Audio(url);
+        cur = { audio, btn, row };
+        btn.textContent='■'; btn.classList.add('playing'); row.classList.add('active');
+        audio.onended = () => { if (cur && cur.audio === audio) stop(); };
+        audio.onerror = () => { errEl.textContent='Браузер не смог проиграть аудио.'; stop(); };
+        await audio.play();
+      } catch (e) {
+        btn.classList.remove('loading'); btn.textContent='▶';
+        errEl.textContent = 'Сервер недоступен. Поднимите backend и перезагрузите страницу.';
+      }
+    }
+
+    function pick(p, row) {
+      document.querySelectorAll('.pick').forEach(b => b.classList.remove('chosen'));
+      row.querySelector('.pick').classList.add('chosen');
+      const cmd = `Сделай дефолтом пресет ${p.id}: ${p.voice} / ${p.role} / ${p.speed}`;
+      navigator.clipboard?.writeText(cmd).catch(()=>{});
+      errEl.style.color = 'var(--emerald)';
+      errEl.textContent = `Готово! Скопировал в буфер: «${cmd}» — вставь мне в чат.`;
+      setTimeout(()=>{ errEl.style.color=''; }, 8000);
+    }
+  </script>
+</body>
+</html>
